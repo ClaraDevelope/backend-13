@@ -17,5 +17,6 @@ const upload = (storage, fieldName) => {
 }
 
 const uploadPerfil = upload(createStorage('profileImage', 'img'), 'img')
+const uploadImagePost = upload(createStorage('postImage', 'img'), 'img')
 
-module.exports = { uploadPerfil }
+module.exports = { uploadPerfil , uploadImagePost}
