@@ -26,7 +26,8 @@ const seedUsers = () => {
                         img: userData['img'],
                     },
                     role: 'user',
-                    calendary: null,
+                    menstrualCycle: [],
+                    calendary: [],
                     contacts: [],
                     posts: [],
                     comments: []

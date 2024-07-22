@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const { transporter } = require("../../config/nodemailer");
 const { deleteImgCloudinary } = require("../../utils/deleteFile");
+const MENSTRUALCYCLE = require("../models/menstrualCycle");
 require('dotenv').config();
 
 const getUsers = async (req, res, next) => {
@@ -36,53 +37,85 @@ try {
 }
 
 }
-const register = async (req, res, next) =>{
+
+const register = async (req, res, next) => {
   try {
+
     const duplicatedUser = await USER.findOne({
-      email: req.body.email
-    })
+      'profile.email': req.body.email
+    });
+
     if (duplicatedUser) {
-      return res.status(400).json('Usuario ya existente')
+      return res.status(400).json('Usuario ya existente');
     }
+
     const newUser = new USER({
-    profile : {    
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password
-    },
-  })
+      profile: {
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
+        img: req.file ? req.file.path : undefined,
+      },
+      role: 'user',
+      menstrualCycle: [], 
+      calendary: [], 
+      contacts: [],
+      posts: [],
+      comments: []
+    });
 
-  if (req.file) {
-    newUser.profile.img = req.file.path
-  }
-  const user = await newUser.save()
+    const user = await newUser.save();
 
-  if(user.profile.email){
-    const mailOptions = {
-      from: 'clara.manzano.corona@gmail.com',
-      to: user.profile.email,
-      subject: 'Te has registrado correctamente en la mejor red social menstrual',
-      text: `Hola, ${user.profile.name} ¡Bienvenida a nuestra comunidad! Nos alegra mucho tenerte con nosotros en la mejor red social menstrual. Aquí podrás encontrar información valiosa, compartir tus experiencias, y conectar con otras personas que entienden lo que estás viviendo. Estamos comprometidos a ofrecerte un espacio seguro, lleno de apoyo y comprensión. Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos. ¡Estamos aquí para ti! Gracias por unirte a nuestra comunidad. ¡Estamos emocionados de acompañarte en este viaje!`
-    };
-    
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error al enviar el correo electrónico de prueba:', error);
-      } else {
-        console.log('Correo electrónico de prueba enviado:', info.response);
+    if (user.profile.email) {
+      const mailOptions = {
+        from: 'clara.manzano.corona@gmail.com',
+        to: user.profile.email,
+        subject: 'Te has registrado correctamente en la mejor red social menstrual',
+        text: `Hola, ${user.profile.name} ¡Bienvenida a nuestra comunidad! ...`
+      };
+      
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error al enviar el correo electrónico de prueba:', error);
+        } else {
+          console.log('Correo electrónico de prueba enviado:', info.response);
+        }
+      });
+    }
+    if (req.body.averageCycleLength && req.body.averagePeriodLength) {
+      try {
+        const averageCycleLength = parseInt(req.body.averageCycleLength, 10);
+        const averagePeriodLength = parseInt(req.body.averagePeriodLength, 10);
+        const menstrualCycle = new MENSTRUALCYCLE({
+          user: user._id,
+          averageCycleLength,
+          averagePeriodLength,
+          startDate: new Date(),
+          endDate: new Date(new Date().getTime() + averagePeriodLength * 24 * 60 * 60 * 1000)
+        });
+
+        await menstrualCycle.save();
+
+        user.menstrualCycle.push(menstrualCycle._id);
+        await user.save();
+
+        console.log('Ciclo menstrual guardado y asociado correctamente:', menstrualCycle);
+      } catch (error) {
+        console.log(error);
+        return res.status(400).json({ message: 'No se ha guardado correctamente el ciclo menstrual' });
       }
-    }); 
-  
+    }
 
-  console.log('usuario creado correctamente:', user);
-  return res.status(201).json(user)
-}
-   
+    console.log('Usuario creado correctamente:', user);
+    return res.status(201).json(user);
+
   } catch (error) {
-    console.error(error)
-    return res.status(400).json('Error al hacer post de los usuarios')
+    console.error(error);
+    return res.status(400).json('Error al hacer post de los usuarios');
   }
-}
+};
+
 const login = async (req, res, next) =>{
   try {
     const {email, password} = req.body
