@@ -135,7 +135,8 @@ const login = async (req, res, next) =>{
     if(!user){
       return res.status(404).json({error: 'Usuario no encontrado'})
     }
-    const validPassword = bcrypt.compareSync(password, user.profile.password)
+    const validPassword = bcrypt.compareSync(password, user.profile.password);
+    console.log(validPassword);
 
     if (!validPassword) {
       return res.status(400).json({ error: 'Contraseña incorrecta' })
