@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const EventSchema = new Schema({
     date: { type: Date},
-    type: { type: String, enum: ['deporte', 'relaciones', 'hormonaciones', 'viajes', 'enfermedad']}
+    type: { type: String, enum: ['deporte', 'relaciones', 'hormonaciones', 'viajes', 'enfermedad,', 'menstruacion']}
 }, { _id: false });
 
 const MoodSchema = new Schema({

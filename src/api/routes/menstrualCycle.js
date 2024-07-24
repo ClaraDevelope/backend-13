@@ -1,7 +1,8 @@
-const { addOrUpdateMenstrualCycle } = require('../controllers/menstrualCycle')
+const { addOrUpdateMenstrualCycle, recordMenstruationStart } = require('../controllers/menstrualCycle')
 
 const menstrualCycleRouter = require('express').Router()
 
 menstrualCycleRouter.post('/new', addOrUpdateMenstrualCycle )
+menstrualCycleRouter.post('/start', recordMenstruationStart)
 
-module.exports = { menstrualCycleRouter }
+module.exports = { menstrualCycleRouter, recordMenstruationStart }

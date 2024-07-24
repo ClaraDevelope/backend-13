@@ -3,7 +3,7 @@ const CALENDARY = require("../models/calendary");
 const POST = require("../models/posts");
 const COMMENT = require("../models/comments");
 const { keyGenerator } = require("../../utils/jwt");
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const { transporter } = require("../../config/nodemailer");
 const { deleteImgCloudinary } = require("../../utils/deleteFile");
@@ -37,29 +37,29 @@ try {
 }
 
 }
-
 const register = async (req, res, next) => {
   try {
+    const { email, name, password, birthDate, averageCycleLength, averagePeriodLength } = req.body;
 
-    const duplicatedUser = await USER.findOne({
-      'profile.email': req.body.email
-    });
+    const duplicatedUser = await USER.findOne({ 'profile.email': email });
 
     if (duplicatedUser) {
       return res.status(400).json('Usuario ya existente');
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newUser = new USER({
       profile: {
-        name: req.body.name,
-        email: req.body.email,
-        password: req.body.password,
-        birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
+        name,
+        email,
+        password: hashedPassword,
+        birthDate: birthDate ? new Date(birthDate) : undefined,
         img: req.file ? req.file.path : undefined,
       },
       role: 'user',
-      menstrualCycle: [], 
-      calendary: [], 
+      menstrualCycle: [],
+      calendary: [],
       contacts: [],
       posts: [],
       comments: []
@@ -74,7 +74,7 @@ const register = async (req, res, next) => {
         subject: 'Te has registrado correctamente en la mejor red social menstrual',
         text: `Hola, ${user.profile.name} ¡Bienvenida a nuestra comunidad! ...`
       };
-      
+
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
           console.error('Error al enviar el correo electrónico de prueba:', error);
@@ -83,21 +83,22 @@ const register = async (req, res, next) => {
         }
       });
     }
-    if (req.body.averageCycleLength && req.body.averagePeriodLength) {
+    console.log('Body:', req.body);
+
+    if (averageCycleLength && averagePeriodLength) {
       try {
-        const averageCycleLength = parseInt(req.body.averageCycleLength, 10);
-        const averagePeriodLength = parseInt(req.body.averagePeriodLength, 10);
+        const cycleLength = parseInt(averageCycleLength, 10);
+        const periodLength = parseInt(averagePeriodLength, 10);
         const menstrualCycle = new MENSTRUALCYCLE({
           user: user._id,
-          averageCycleLength,
-          averagePeriodLength,
+          averageCycleLength: cycleLength,
+          averagePeriodLength: periodLength,
           startDate: new Date(),
-          endDate: new Date(new Date().getTime() + averagePeriodLength * 24 * 60 * 60 * 1000)
+          endDate: new Date(new Date().getTime() + periodLength * 24 * 60 * 60 * 1000)
         });
 
         await menstrualCycle.save();
-
-        user.menstrualCycle.push(menstrualCycle._id);
+        user.menstrualCycle = menstrualCycle._id;
         await user.save();
 
         console.log('Ciclo menstrual guardado y asociado correctamente:', menstrualCycle);
@@ -116,41 +117,147 @@ const register = async (req, res, next) => {
   }
 };
 
-const login = async (req, res, next) =>{
+// const register = async (req, res, next) => {
+//   try {
+
+//     const duplicatedUser = await USER.findOne({
+//       'profile.email': req.body.email
+//     });
+
+//     if (duplicatedUser) {
+//       return res.status(400).json('Usuario ya existente');
+//     }
+
+//     const newUser = new USER({
+//       profile: {
+//         name: req.body.name,
+//         email: req.body.email,
+//         password: req.body.password,
+//         birthDate: req.body.birthDate ? new Date(req.body.birthDate) : undefined,
+//         img: req.file ? req.file.path : undefined,
+//       },
+//       role: 'user',
+//       menstrualCycle: [], 
+//       calendary: [], 
+//       contacts: [],
+//       posts: [],
+//       comments: []
+//     });
+
+//     const user = await newUser.save();
+
+//     if (user.profile.email) {
+//       const mailOptions = {
+//         from: 'clara.manzano.corona@gmail.com',
+//         to: user.profile.email,
+//         subject: 'Te has registrado correctamente en la mejor red social menstrual',
+//         text: `Hola, ${user.profile.name} ¡Bienvenida a nuestra comunidad! ...`
+//       };
+      
+//       transporter.sendMail(mailOptions, (error, info) => {
+//         if (error) {
+//           console.error('Error al enviar el correo electrónico de prueba:', error);
+//         } else {
+//           console.log('Correo electrónico de prueba enviado:', info.response);
+//         }
+//       });
+//     }
+//     console.log('Body:', req.body);
+
+//     if (req.body.averageCycleLength && req.body.averagePeriodLength) {
+//       try {
+//         const averageCycleLength = parseInt(req.body.averageCycleLength, 10);
+//         const averagePeriodLength = parseInt(req.body.averagePeriodLength, 10);
+//         const menstrualCycle = new MENSTRUALCYCLE({
+//           user: user._id,
+//           averageCycleLength,
+//           averagePeriodLength,
+//           startDate: new Date(),
+//           endDate: new Date(new Date().getTime() + averagePeriodLength * 24 * 60 * 60 * 1000)
+//         });
+
+//         await menstrualCycle.save();
+
+//         user.menstrualCycle = menstrualCycle._id;
+//         await user.save();
+
+//         console.log('Ciclo menstrual guardado y asociado correctamente:', menstrualCycle);
+//       } catch (error) {
+//         console.log(error);
+//         return res.status(400).json({ message: 'No se ha guardado correctamente el ciclo menstrual' });
+//       }
+//     }
+
+//     console.log('Usuario creado correctamente:', user);
+//     return res.status(201).json(user);
+
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(400).json('Error al hacer post de los usuarios');
+//   }
+// };
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    switch (true) {
+      case !email && !password:
+        return res.status(400).json({ error: 'Email o contraseña incorrectas' });
+      case !email:
+        return res.status(400).json({ error: 'Error en el email' });
+      case !password:
+        return res.status(400).json({ error: 'Error en la contraseña' });
+    }
+  }
+
   try {
-    const {email, password} = req.body
+    const user = await USER.findOne({ 'profile.email': email });
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-    if (!email || !password) {
-      switch (true) {
-        case !email && !password:
-          return res.status(400).json({ error: 'Email o contraseña incorrectas' });
-        case !email:
-          return res.status(400).json({ error: 'Error en el email' });
-        case !password:
-          return res.status(400).json({ error: 'Error en la contraseña' });
-      }
+    const validPassword = await bcrypt.compare(password, user.profile.password);
+    if (validPassword) {
+      const token = keyGenerator(user._id);
+      console.log({user:user, token:token});
+      return res.status(200).json({ user, token });
+    } else {
+      return res.status(409).json({ message: 'Contraseña incorrecta' });
     }
-    const user = await USER.findOne({ 'profile.email': email })
-    console.log(user);
-    if(!user){
-      return res.status(404).json({error: 'Usuario no encontrado'})
-    }
-    const validPassword = bcrypt.compareSync(password, user.profile.password);
-    console.log(validPassword);
-
-    if (!validPassword) {
-      return res.status(400).json({ error: 'Contraseña incorrecta' })
-    }
-
-    const token = keyGenerator(user._id)
-    console.log({token: token, user: user});
-    return res.status(200).json({ token, user })
-
   } catch (error) {
     console.log(error);
-    return res.status(400).json({error: 'no se ha realizado el login correctamente'})
+    return res.status(500).json({ message: 'no se ha realizado el login correctamente' });
   }
-}
+};
+
+// const login = async (req, res) => {
+//   const { email, password } = req.body
+
+//   try {
+//     const user = await USER.findOne({ 'profile.email': email })
+//     if (!user) return res.status(404).json({ message: 'Usuario no encontrado' })
+
+//      if (!email || !password) {
+//       switch (true) {
+//       case !email && !password:
+//         return res.status(400).json({ error: 'Email o contraseña incorrectas' });
+//       case !email:
+//        return res.status(400).json({ error: 'Error en el email' });
+//       case !password:
+//         return res.status(400).json({ error: 'Error en la contraseña' });
+//       }
+//     }
+//     if (bcrypt.compareSync(password, user.profile.password)) {
+//       const token = keyGenerator(user._id)
+//       return res.status(200).json({ user, token })
+//     } else {
+//       return res.status(409).json({ message: 'contraseña incorrecta' })
+//     }
+//   } catch (error) {
+//     console.log(error)
+//     return res
+//       .status(500)
+//       .json({ message: 'no se ha realizado el login correctamente' })
+//   }
+// }
 
 const updateUser = async (req, res, next) => {
   try {
@@ -214,3 +321,42 @@ const deleteUser = async (req, res, next) =>{
 module.exports = {
     getUsers, getUserByID, register, login, updateUser, deleteUser
 };
+
+
+
+// const login = async (req, res, next) =>{
+//   try {
+//     const {email, password} = req.body
+
+//     if (!email || !password) {
+//       switch (true) {
+//         case !email && !password:
+//           return res.status(400).json({ error: 'Email o contraseña incorrectas' });
+//         case !email:
+//           return res.status(400).json({ error: 'Error en el email' });
+//         case !password:
+//           return res.status(400).json({ error: 'Error en la contraseña' });
+//       }
+//     }
+//     const user = await USER.findOne({ 'profile.email': email })
+//     console.log(user);
+//     if(!user){
+//       return res.status(404).json({error: 'Usuario no encontrado'})
+//     }
+//     const validPassword = bcrypt.compareSync(password, user.profile.password);
+//       console.log(password);
+//       console.log(user.profile.password);
+//       console.log(validPassword);
+//     if (!validPassword) {
+//       return res.status(400).json({ error: 'Contraseña incorrecta' })
+//     }
+
+//     const token = keyGenerator(user._id)
+//     console.log({token: token, user: user});
+//     return res.status(200).json({ token, user })
+
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(400).json({error: 'no se ha realizado el login correctamente'})
+//   }
+// }
