@@ -125,26 +125,28 @@ const register = async (req, res, next) => {
     }
     console.log('Body:', req.body);
 
-    if (averageCycleLength && averagePeriodLength) {
-      try {
-        const cycleLength = parseInt(averageCycleLength, 10);
-        const periodLength = parseInt(averagePeriodLength, 10);
-        const menstrualCycle = new MENSTRUALCYCLE({
-          user: user._id,
-          averageCycleLength: cycleLength,
-          averagePeriodLength: periodLength,
-          history:[]
-        });
+    const defaultCycleLength = 28; 
+    const defaultPeriodLength = 5;  
 
-        await menstrualCycle.save();
-        user.menstrualCycle = menstrualCycle._id;
-        await user.save();
+    const cycleLength = averageCycleLength ? parseInt(averageCycleLength, 10) : defaultCycleLength;
+    const periodLength = averagePeriodLength ? parseInt(averagePeriodLength, 10) : defaultPeriodLength;
 
-        console.log('Ciclo menstrual guardado y asociado correctamente:', menstrualCycle);
-      } catch (error) {
-        console.log(error);
-        return res.status(400).json({ message: 'No se ha guardado correctamente el ciclo menstrual' });
-      }
+    try {
+      const menstrualCycle = new MENSTRUALCYCLE({
+        user: user._id,
+        averageCycleLength: cycleLength,
+        averagePeriodLength: periodLength,
+        history: [] 
+      });
+
+      await menstrualCycle.save();
+      user.menstrualCycle = menstrualCycle._id;
+      await user.save();
+
+      console.log('Ciclo menstrual guardado y asociado correctamente:', menstrualCycle);
+    } catch (error) {
+      console.log(error);
+      return res.status(400).json({ message: 'No se ha guardado correctamente el ciclo menstrual' });
     }
 
     try {
@@ -175,6 +177,105 @@ const register = async (req, res, next) => {
     return res.status(400).json('Error al hacer post de los usuarios');
   }
 };
+
+// const register = async (req, res, next) => {
+//   try {
+//     const { email, name, password, birthDate, averageCycleLength, averagePeriodLength } = req.body;
+
+//     const duplicatedUser = await USER.findOne({ 'profile.email': email });
+
+//     if (duplicatedUser) {
+//       return res.status(400).json('Usuario ya existente');
+//     }
+
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     const newUser = new USER({
+//       profile: {
+//         name,
+//         email,
+//         password: hashedPassword,
+//         birthDate: birthDate ? new Date(birthDate) : undefined,
+//         img: req.file ? req.file.path : undefined,
+//       },
+//       role: 'user',
+//       menstrualCycle: [],
+//       calendary: [],
+//       contacts: [],
+//       posts: [],
+//       comments: []
+//     });
+
+//     const user = await newUser.save();
+
+//     if (user.profile.email) {
+//       const mailOptions = {
+//         from: 'clara.manzano.corona@gmail.com',
+//         to: user.profile.email,
+//         subject: 'Te has registrado correctamente en la mejor red social menstrual',
+//         text: `Hola, ${user.profile.name} ¡Bienvenida a nuestra comunidad! ...`
+//       };
+
+//       transporter.sendMail(mailOptions, (error, info) => {
+//         if (error) {
+//           console.error('Error al enviar el correo electrónico de prueba:', error);
+//         } else {
+//           console.log('Correo electrónico de prueba enviado:', info.response);
+//         }
+//       });
+//     }
+//     console.log('Body:', req.body);
+
+//     if (averageCycleLength && averagePeriodLength) {
+//       try {
+//         const cycleLength = parseInt(averageCycleLength, 10);
+//         const periodLength = parseInt(averagePeriodLength, 10);
+//         const menstrualCycle = new MENSTRUALCYCLE({
+//           user: user._id,
+//           averageCycleLength: cycleLength,
+//           averagePeriodLength: periodLength,
+//           history:[]
+//         });
+
+//         await menstrualCycle.save();
+//         user.menstrualCycle = menstrualCycle._id;
+//         await user.save();
+
+//         console.log('Ciclo menstrual guardado y asociado correctamente:', menstrualCycle);
+//       } catch (error) {
+//         console.log(error);
+//         return res.status(400).json({ message: 'No se ha guardado correctamente el ciclo menstrual' });
+//       }
+//     }
+
+//     try {
+//       const calendary = new CALENDARY({
+//         user: user._id,
+//         menstrualCycle: user.menstrualCycle._id,
+//         events: [],
+//         personalTags: [],
+//         symptoms: [],
+//         mood: []
+//       });
+
+//       await calendary.save();
+//       user.calendary = calendary._id;
+//       await user.save();
+
+//       console.log('Calendario creado y asociado correctamente:', calendary);
+//     } catch (error) {
+//       console.log(error);
+//       return res.status(400).json({ message: 'No se ha guardado correctamente el calendario' });
+//     }
+
+//     console.log('Usuario creado correctamente:', user);
+//     return res.status(201).json(user);
+
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(400).json('Error al hacer post de los usuarios');
+//   }
+// };
 
 const login = async (req, res) => {
   const { email, password } = req.body;
