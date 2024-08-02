@@ -7,4 +7,4 @@ menstrualCycleRouter.post('/start', recordMenstruationStart)
 menstrualCycleRouter.post('/end', recordMenstruationEnd)
 menstrualCycleRouter.get('/:cycleId', getCurrentMenstrualCycle)
 
-module.exports = { menstrualCycleRouter, recordMenstruationStart }
+module.exports = { menstrualCycleRouter }
