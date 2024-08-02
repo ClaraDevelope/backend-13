@@ -6,7 +6,17 @@ const menstrualCycleSchema = new Schema({
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
     averageCycleLength: { type: Number, default: 28 },
-    averagePeriodLength: { type: Number, default: 5 }
+    averagePeriodLength: { type: Number, default: 5 },
+    history: [
+        {
+            startDate: { type: Date },
+            endDate: { type: Date }
+        }
+    ],
+    nextCycle: {
+        start: { type: Date, required: false },
+        end: { type: Date, required: false }
+    }
 });
 
 const MENSTRUALCYCLE = mongoose.model('MenstrualCycle', menstrualCycleSchema, 'MenstrualCycle');

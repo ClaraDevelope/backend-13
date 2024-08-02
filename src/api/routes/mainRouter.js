@@ -8,6 +8,6 @@ const mainRouter = require('express').Router()
 
 mainRouter.use('/auth', userRouter)
 mainRouter.use('/post', postRouter)
-mainRouter.use('/auth/:id/cycle', isAuth ,menstrualCycleRouter)
+mainRouter.use('/cycle', isAuth ,menstrualCycleRouter)
 
 module.exports = { mainRouter }
