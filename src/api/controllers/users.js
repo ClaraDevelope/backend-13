@@ -80,7 +80,7 @@ const getUserByID = async (req, res, next) => {
 const register = async (req, res, next) => {
   try {
     const { email, name, password, birthDate, averageCycleLength, averagePeriodLength } = req.body;
-
+    console.log('Password recibido:', password)
     const duplicatedUser = await USER.findOne({ 'profile.email': email });
 
     if (duplicatedUser) {
