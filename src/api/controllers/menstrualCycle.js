@@ -56,7 +56,8 @@ const addOrUpdateMenstrualCycle = async (req, res) => {
 };
 
 const recordMenstruationStart = async (req, res) => {
-  try {
+  try {    
+    console.log('Cuerpo de la solicitud:', req.body);
       const userId = req.user._id;
       const { startDate } = req.body;
 

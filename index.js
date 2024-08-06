@@ -10,6 +10,8 @@ const app = express();
 app.use(cors())
 app.use(express.json())
 
+
+
 const PORT =  8686;
 
 cloudinary.config({
@@ -17,6 +19,7 @@ cloudinary.config({
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET
 })
+
 
 app.use('/api/v1', mainRouter)
 
