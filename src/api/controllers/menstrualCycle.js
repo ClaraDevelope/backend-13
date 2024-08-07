@@ -153,7 +153,7 @@ const getCurrentMenstrualCycle = async (req, res) => {
     }
 
     const lastMenstruationEvent = calendary.events
-      .filter(event => event.type === 'menstruacion')
+      .filter(event => event.value === 'menstruacion')
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
     console.log('Last Menstruation Event:', lastMenstruationEvent);
 
