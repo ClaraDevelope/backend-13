@@ -4,6 +4,28 @@ const MENSTRUALCYCLE = require('../models/menstrualCycle');
 const { parseDate } = require("../../utils/parseDate");
 const mongoose = require('mongoose');
 
+
+const getAllEvents = async (req, res) => {
+  try {
+    const calendary = await CALENDARY.findOne({ user: req.user._id });
+    if (!calendary) {
+      return res.status(404).json({ message: 'Calendary not found' });
+    }
+
+    const { events, personalTags, symptoms, mood } = calendary;
+    const allEvents = [
+      ...events.map(event => ({ ...event.toObject(), type: 'event' })),
+      ...personalTags.map(tag => ({ ...tag.toObject(), type: 'personalTag' })),
+      ...symptoms.map(symptom => ({ ...symptom.toObject(), type: 'symptom' })),
+      ...mood.map(mood => ({ ...mood.toObject(), type: 'mood' })),
+    ];
+
+    res.status(200).json(allEvents);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getCalendary = async (req, res) => {
   try {
     const userId  = req.user._id;
@@ -33,7 +55,7 @@ const addEntry = async (req, res) => {
 
     switch (entryType) {
       case 'event':
-        newEntry = { _id: entryId, date: parseDate(date), type };
+        newEntry = { _id: entryId, date: parseDate(date), value };
         calendary.events.push(newEntry);
         break;
       case 'personalTag':
@@ -45,7 +67,7 @@ const addEntry = async (req, res) => {
         calendary.symptoms.push(newEntry);
         break;
       case 'mood':
-        newEntry = { _id: entryId, date: parseDate(date), type };
+        newEntry = { _id: entryId, date: parseDate(date), value };
         calendary.mood.push(newEntry);
         break;
       default:
@@ -131,7 +153,4 @@ const deleteEntry = async (req, res) => {
 };
 
 
-
-
-
-module.exports = { getCalendary, addEntry, deleteEntry };
+module.exports = { getAllEvents, getCalendary, addEntry, deleteEntry };

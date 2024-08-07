@@ -89,7 +89,7 @@ const recordMenstruationStart = async (req, res) => {
 
       const event = {
           date: parsedStartDate,
-          type: 'menstruacion'
+          value: 'menstruacion'
       };
 
       calendary.events.push(event);

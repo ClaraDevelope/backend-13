@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const EventSchema = new Schema({
     _id: Schema.Types.ObjectId,
     date: { type: Date },
-    type: { type: String, enum: ['deporte', 'relaciones', 'hormonaciones', 'viaje', 'enfermedad', 'menstruacion', 'fiesta', 'cumpleaños', 'medico'] }
+    value: { type: String, enum: ['deporte', 'relaciones', 'hormonaciones', 'viaje', 'enfermedad', 'menstruacion', 'fiesta', 'cumpleaños', 'medico'] }
 }, { _id: false });
 
 const PersonalTagSchema = new Schema({
@@ -16,7 +16,7 @@ const PersonalTagSchema = new Schema({
 const MoodSchema = new Schema({
     _id: Schema.Types.ObjectId,
     date: { type: Date },
-    type: { type: String, enum: ['enojada', 'ansiosa', 'calmada', 'deprimida', 'con energía', 'fatigada', 'feliz', 'hambrienta', 'frustrada', 'voluble', 'nerviosa', 'sensible', 'cansada', 'estresada', 'irritable', 'dormida', 'atrevida'] }
+    value: { type: String, enum: ['enojada', 'ansiosa', 'calmada', 'deprimida', 'con energía', 'fatigada', 'feliz', 'hambrienta', 'frustrada', 'voluble', 'nerviosa', 'sensible', 'cansada', 'estresada', 'irritable', 'dormida', 'atrevida'] }
 }, { _id: false });
 
 const SymptomSchema = new Schema({
