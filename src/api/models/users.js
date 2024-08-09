@@ -15,8 +15,8 @@ const UserSchema = new Schema({
         img: { type: String, trim: true, required: false },
     },
     role: {type: String, enum:['user', 'admin'], default: 'user' },
-    menstrualCycle:[{type: Schema.Types.ObjectId, ref: 'MenstrualCycle'}],
-    calendary:[ { type: Schema.Types.ObjectId, ref: 'Calendary' }],
+    menstrualCycle:{type: Schema.Types.ObjectId, ref: 'MenstrualCycle'},
+    calendary:{ type: Schema.Types.ObjectId, ref: 'Calendary' },
     contacts: [ContactsSchema], 
     posts: [{ type: Schema.Types.ObjectId, ref: 'Post' }],
     comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }]

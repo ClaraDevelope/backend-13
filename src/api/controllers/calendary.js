@@ -26,6 +26,21 @@ const getAllEvents = async (req, res) => {
   }
 };
 
+const getEntryValues = async(req, res) =>{
+  try {
+    
+    const entryValues = {
+      event: ['deporte', 'relaciones', 'hormonaciones', 'viaje', 'enfermedad', 'menstruacion', 'fiesta', 'cumpleaños', 'medico'],
+      mood: ['enojada', 'ansiosa', 'calmada', 'deprimida', 'con energía', 'fatigada', 'feliz', 'hambrienta', 'frustrada', 'voluble', 'nerviosa', 'sensible', 'cansada', 'estresada', 'irritable', 'dormida', 'atrevida'],
+      symptom: [], 
+      personalTag: [] 
+    };
+    return res.status(200).json(entryValues)
+  } catch (error) {
+    res.status(400).json({ message: 'solicitud errónea' })
+  }
+}
+
 const getCalendary = async (req, res) => {
   try {
     const userId  = req.user._id;
@@ -153,4 +168,4 @@ const deleteEntry = async (req, res) => {
 };
 
 
-module.exports = { getAllEvents, getCalendary, addEntry, deleteEntry };
+module.exports = { getAllEvents, getEntryValues , getCalendary, addEntry, deleteEntry };

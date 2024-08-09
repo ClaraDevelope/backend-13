@@ -98,8 +98,8 @@ const register = async (req, res, next) => {
         img: req.file ? req.file.path : undefined,
       },
       role: 'user',
-      menstrualCycle: [],
-      calendary: [],
+      menstrualCycle: null,
+      calendary: null,
       contacts: [],
       posts: [],
       comments: []

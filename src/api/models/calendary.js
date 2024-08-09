@@ -2,28 +2,24 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const EventSchema = new Schema({
-    _id: Schema.Types.ObjectId,
-    date: { type: Date },
-    value: { type: String, enum: ['deporte', 'relaciones', 'hormonaciones', 'viaje', 'enfermedad', 'menstruacion', 'fiesta', 'cumpleaños', 'medico'] }
-}, { _id: false });
+    date: { type: Date, required: true },
+    value: { type: String, enum: ['deporte', 'relaciones', 'hormonaciones', 'viaje', 'enfermedad', 'menstruacion', 'fiesta', 'cumpleaños', 'medico'], required: true }
+});
 
 const PersonalTagSchema = new Schema({
-    _id: Schema.Types.ObjectId,
-    date: { type: Date },
-    value: { type: String }
-}, { _id: false });
+    date: { type: Date, required: true },
+    value: { type: String, required: true }
+});
 
 const MoodSchema = new Schema({
-    _id: Schema.Types.ObjectId,
-    date: { type: Date },
-    value: { type: String, enum: ['enojada', 'ansiosa', 'calmada', 'deprimida', 'con energía', 'fatigada', 'feliz', 'hambrienta', 'frustrada', 'voluble', 'nerviosa', 'sensible', 'cansada', 'estresada', 'irritable', 'dormida', 'atrevida'] }
-}, { _id: false });
+    date: { type: Date, required: true },
+    value: { type: String, enum: ['enojada', 'ansiosa', 'calmada', 'deprimida', 'con energía', 'fatigada', 'feliz', 'hambrienta', 'frustrada', 'voluble', 'nerviosa', 'sensible', 'cansada', 'estresada', 'irritable', 'dormida', 'atrevida'], required: true }
+});
 
 const SymptomSchema = new Schema({
-    _id: Schema.Types.ObjectId,
-    date: { type: Date },
-    value: { type: String }
-}, { _id: false });
+    date: { type: Date, required: true },
+    value: { type: String, required: true }
+});
 
 const CalendarySchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
