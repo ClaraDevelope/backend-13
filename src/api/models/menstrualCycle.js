@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const menstrualCycleSchema = new Schema({
-    user: {type: Schema.Types.ObjectId, ref: 'User'},
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
     startDate: { type: Date, required: false },
     endDate: { type: Date, required: false },
     averageCycleLength: { type: Number, default: 28 },
@@ -13,10 +13,12 @@ const menstrualCycleSchema = new Schema({
             endDate: { type: Date }
         }
     ],
-    nextCycle: {
-        start: { type: Date, required: false },
-        end: { type: Date, required: false }
-    }
+    nextCycles: [
+        {
+            start: { type: Date, required: false },
+            end: { type: Date, required: false }
+        }
+    ]
 });
 
 const MENSTRUALCYCLE = mongoose.model('MenstrualCycle', menstrualCycleSchema, 'MenstrualCycle');

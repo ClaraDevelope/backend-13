@@ -118,46 +118,55 @@ const recordMenstruationEnd = async (req, res) => {
     return res.status(400).json({ message: 'Error al registrar el fin de la menstruación' });
   }
 };
-
 const getCurrentMenstrualCycle = async (req, res) => {
   try {
     const userId = req.user._id;
     const cycleId = req.params.cycleId;
+    const limitDate = new Date();
+    limitDate.setFullYear(limitDate.getFullYear() + 50); 
 
     const menstrualCycle = await MENSTRUALCYCLE.findOne({ _id: cycleId, user: userId }).exec();
     if (!menstrualCycle) {
       return res.status(404).json({ message: 'Ciclo menstrual no encontrado' });
     }
 
-
     const calendary = await CALENDARY.findOne({ user: userId }).exec();
     if (!calendary) {
       return res.status(404).json({ message: 'Calendario no encontrado' });
     }
 
-    const lastMenstruationEvent = calendary.events
-      .filter(event => event.value === 'menstruacion')
-      .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+    const lastMenstruationEvent = menstrualCycle.history.length > 0
+      ? menstrualCycle.history[menstrualCycle.history.length - 1]
+      : null;
 
     let currentCycleStart, currentCycleEnd;
-
     if (lastMenstruationEvent) {
-
-      currentCycleStart = new Date(lastMenstruationEvent.date);
-      currentCycleEnd = new Date(currentCycleStart.getTime() + menstrualCycle.averagePeriodLength * 24 * 60 * 60 * 1000);
+      currentCycleStart = new Date(lastMenstruationEvent.startDate);
+      currentCycleEnd = new Date(lastMenstruationEvent.endDate);
     } else {
-
       return res.status(200).json({
         menstrualCycle,
         calendary,
         currentCycle: null,
-        nextCycle: null
+        nextCycles: []
       });
     }
 
- 
-    const nextCycleStart = new Date(currentCycleEnd.getTime() + menstrualCycle.averageCycleLength * 24 * 60 * 60 * 1000);
-    const nextCycleEnd = new Date(nextCycleStart.getTime() + menstrualCycle.averagePeriodLength * 24 * 60 * 60 * 1000);
+    menstrualCycle.nextCycles = [];
+    let nextCycleStart = new Date(currentCycleStart.getTime() + menstrualCycle.averageCycleLength * 24 * 60 * 60 * 1000);
+    let nextCycleEnd = new Date(nextCycleStart.getTime() + menstrualCycle.averagePeriodLength * 24 * 60 * 60 * 1000);
+
+    while (nextCycleStart <= limitDate) {
+      menstrualCycle.nextCycles.push({
+        start: nextCycleStart,
+        end: nextCycleEnd
+      });
+
+      nextCycleStart = new Date(nextCycleStart.getTime() + menstrualCycle.averageCycleLength * 24 * 60 * 60 * 1000);
+      nextCycleEnd = new Date(nextCycleStart.getTime() + menstrualCycle.averagePeriodLength * 24 * 60 * 60 * 1000);
+    }
+
+    await menstrualCycle.save();
 
     return res.status(200).json({
       menstrualCycle,
@@ -166,21 +175,24 @@ const getCurrentMenstrualCycle = async (req, res) => {
         start: currentCycleStart.toISOString(),
         end: currentCycleEnd.toISOString()
       },
-      nextCycle: {
-        start: nextCycleStart.toISOString(),
-        end: nextCycleEnd.toISOString()
-      }
+      nextCycles: menstrualCycle.nextCycles.map(cycle => ({
+        start: cycle.start.toISOString(),
+        end: cycle.end.toISOString()
+      }))
     });
   } catch (error) {
     console.error('Error in getCurrentMenstrualCycle:', error);
     return res.status(400).json({ message: 'Error al obtener el estado del ciclo menstrual' });
   }
 };
+
+
+
+
 // const getCurrentMenstrualCycle = async (req, res) => {
 //   try {
 //     const userId = req.user._id;
 //     const cycleId = req.params.cycleId;
-
 
 //     const menstrualCycle = await MENSTRUALCYCLE.findOne({ _id: cycleId, user: userId }).exec();
 //     if (!menstrualCycle) {
@@ -193,23 +205,27 @@ const getCurrentMenstrualCycle = async (req, res) => {
 //       return res.status(404).json({ message: 'Calendario no encontrado' });
 //     }
 
-
 //     const lastMenstruationEvent = calendary.events
 //       .filter(event => event.value === 'menstruacion')
 //       .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
-
 //     let currentCycleStart, currentCycleEnd;
 
 //     if (lastMenstruationEvent) {
+
 //       currentCycleStart = new Date(lastMenstruationEvent.date);
 //       currentCycleEnd = new Date(currentCycleStart.getTime() + menstrualCycle.averagePeriodLength * 24 * 60 * 60 * 1000);
 //     } else {
-//       currentCycleStart = new Date(); 
-//       currentCycleEnd = new Date(currentCycleStart.getTime() + menstrualCycle.averagePeriodLength * 24 * 60 * 60 * 1000);
+
+//       return res.status(200).json({
+//         menstrualCycle,
+//         calendary,
+//         currentCycle: null,
+//         nextCycle: null
+//       });
 //     }
 
-
+ 
 //     const nextCycleStart = new Date(currentCycleEnd.getTime() + menstrualCycle.averageCycleLength * 24 * 60 * 60 * 1000);
 //     const nextCycleEnd = new Date(nextCycleStart.getTime() + menstrualCycle.averagePeriodLength * 24 * 60 * 60 * 1000);
 
@@ -230,7 +246,6 @@ const getCurrentMenstrualCycle = async (req, res) => {
 //     return res.status(400).json({ message: 'Error al obtener el estado del ciclo menstrual' });
 //   }
 // };
-
 
 module.exports = { addOrUpdateMenstrualCycle, recordMenstruationStart, recordMenstruationEnd, getCurrentMenstrualCycle };
 
