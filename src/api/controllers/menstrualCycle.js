@@ -4,6 +4,7 @@ const CALENDARY = require('../models/calendary');
 const { parseDate } = require('../../utils/parseDate');
 const { calculateNextCycle } = require('../../utils/nextCycle');
 
+// ! HAY QUE CAMBIAR NEXTCYCLE POR NEXTCYCLESSSSS, RECUERDA QUE AHORA ES UN ARRAY
 const addOrUpdateMenstrualCycle = async (req, res) => {
   try {
     const userId = req.user._id;

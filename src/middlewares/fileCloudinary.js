@@ -7,7 +7,7 @@ const createStorage = (folderName, fieldName) => {
     cloudinary: cloudinary,
     params: {
       folder: folderName,
-      allowedFormats: ['jpg', 'png', 'jpeg', 'gif', 'webP']
+      allowedFormats: ['jpg', 'png', 'jpeg', 'gif', 'webP','webp']
     }
   })
 }

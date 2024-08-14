@@ -313,44 +313,53 @@ const updateUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
     const updates = req.body;
-    const newImage = req.file
+    const newImage = req.file;
 
-    if (Object.keys(updates).length === 0) {
+    console.log(updates);
+
+    // Verifica si hay actualizaciones o una nueva imagen
+    if (Object.keys(updates).length === 0 && !newImage) {
+      console.log(Object.keys(updates).length);
       return res.status(400).json({ error: 'No se proporcionaron datos válidos para actualizar' });
     }
 
+    // Busca el usuario
     const user = await USER.findById(userId);
-
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    if (newImage && user.profile.img) {
-      deleteImgCloudinary(user.profile.img); 
-    }else if (newImage.path){
-      user.profile.img = newImage.path
+    // Maneja la nueva imagen si está disponible
+    if (newImage) {
+      if (user.profile.img) {
+        // Elimina la imagen anterior si existe
+        deleteImgCloudinary(user.profile.img);
+      }
+      user.profile.img = newImage.path; // Establece la nueva imagen
     }
 
+    // Actualiza los campos del usuario
     for (const key in updates) {
       if (Object.prototype.hasOwnProperty.call(updates, key)) {
         if (key !== 'password' && key !== 'img') {
           user.profile[key] = updates[key];
         } else if (key === 'password') {
           user.profile.password = bcrypt.hashSync(updates.password, 10);
-        } else if (key === 'img') {
-          user.profile.img = updates.img;
         }
+        // No actualices el campo de la imagen aquí si ya has establecido una nueva imagen
       }
     }
 
+    // Guarda el usuario actualizado
     const updatedUser = await user.save();
-
     return res.status(200).json(updatedUser);
   } catch (error) {
     console.error('Error en updateUser:', error);
     return res.status(400).json({ error: 'Error al actualizar el usuario' });
   }
 };
+
+
 
 const deleteUser = async (req, res, next) =>{
   try {
