@@ -10,43 +10,40 @@ const addOrUpdateMenstrualCycle = async (req, res) => {
     const userId = req.user._id;
     const { averageCycleLength, averagePeriodLength } = req.body;
 
-    if (!averageCycleLength || !averagePeriodLength) {
-      return res.status(400).json({ message: 'Los datos del ciclo menstrual son necesarios' });
-    }
-
-    // Buscar el ciclo menstrual actual del usuario
     let menstrualCycle = await MENSTRUALCYCLE.findOne({ user: userId });
 
     if (menstrualCycle) {
-      // Actualizar el ciclo menstrual existente
-      menstrualCycle.averageCycleLength = averageCycleLength;
-      menstrualCycle.averagePeriodLength = averagePeriodLength;
-
-      // Recalcular nextCycle basado en el último ciclo en el historial
-      const lastCycle = menstrualCycle.history.length > 0 ? menstrualCycle.history : { endDate: menstrualCycle.endDate };
-      if (lastCycle.endDate) {
-        menstrualCycle.nextCycle = calculateNextCycle(new Date(lastCycle.endDate), averageCycleLength, averagePeriodLength);
+      if (averageCycleLength !== undefined) {
+        menstrualCycle.averageCycleLength = averageCycleLength;
       }
-      // Actualizar el ciclo menstrual en la base de datos
+      if (averagePeriodLength !== undefined) {
+        menstrualCycle.averagePeriodLength = averagePeriodLength;
+      }
+
+      const lastCycle = menstrualCycle.history.length > 0 ? menstrualCycle.history[menstrualCycle.history.length - 1] : { endDate: menstrualCycle.endDate };
+      if (lastCycle.endDate) {
+        const nextCycle = calculateNextCycle(new Date(lastCycle.endDate), menstrualCycle.averageCycleLength, menstrualCycle.averagePeriodLength);
+        menstrualCycle.nextCycles.push(nextCycle);
+      }
+
       menstrualCycle = await MENSTRUALCYCLE.findByIdAndUpdate(menstrualCycle._id, menstrualCycle, { new: true });
     } else {
-      // Crear un nuevo ciclo menstrual
       menstrualCycle = new MENSTRUALCYCLE({
         user: userId,
-        averageCycleLength,
-        averagePeriodLength,
+        averageCycleLength: averageCycleLength || 28,  
+        averagePeriodLength: averagePeriodLength || 5, 
         startDate: new Date(),
-        endDate: new Date(new Date().getTime() + averagePeriodLength * 24 * 60 * 60 * 1000),
-        history: []
+        endDate: new Date(new Date().getTime() + (averagePeriodLength || 5) * 24 * 60 * 60 * 1000),
+        history: [],
+        nextCycles: []
       });
-      // Calcular nextCycle para el nuevo ciclo
-      menstrualCycle.nextCycle = calculateNextCycle(menstrualCycle.endDate, averageCycleLength, averagePeriodLength);
 
-      // Guardar el nuevo ciclo menstrual en la base de datos
+      const nextCycle = calculateNextCycle(menstrualCycle.endDate, menstrualCycle.averageCycleLength, menstrualCycle.averagePeriodLength);
+      menstrualCycle.nextCycles.push(nextCycle);
+
       await menstrualCycle.save();
     }
 
-    // Actualizar la referencia al ciclo menstrual en el usuario
     await USER.findByIdAndUpdate(userId, { menstrualCycle: menstrualCycle._id }, { new: true });
 
     return res.status(200).json(menstrualCycle);
@@ -55,6 +52,7 @@ const addOrUpdateMenstrualCycle = async (req, res) => {
     return res.status(400).json({ message: 'Error al agregar o actualizar el ciclo menstrual' });
   }
 };
+
 
 
 const recordMenstruationStart = async (req, res) => {

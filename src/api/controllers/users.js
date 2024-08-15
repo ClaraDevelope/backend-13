@@ -317,28 +317,24 @@ const updateUser = async (req, res, next) => {
 
     console.log(updates);
 
-    // Verifica si hay actualizaciones o una nueva imagen
     if (Object.keys(updates).length === 0 && !newImage) {
       console.log(Object.keys(updates).length);
       return res.status(400).json({ error: 'No se proporcionaron datos válidos para actualizar' });
     }
 
-    // Busca el usuario
     const user = await USER.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Maneja la nueva imagen si está disponible
+
     if (newImage) {
       if (user.profile.img) {
-        // Elimina la imagen anterior si existe
         deleteImgCloudinary(user.profile.img);
       }
-      user.profile.img = newImage.path; // Establece la nueva imagen
+      user.profile.img = newImage.path; 
     }
 
-    // Actualiza los campos del usuario
     for (const key in updates) {
       if (Object.prototype.hasOwnProperty.call(updates, key)) {
         if (key !== 'password' && key !== 'img') {
@@ -350,8 +346,8 @@ const updateUser = async (req, res, next) => {
       }
     }
 
-    // Guarda el usuario actualizado
     const updatedUser = await user.save();
+    
     return res.status(200).json(updatedUser);
   } catch (error) {
     console.error('Error en updateUser:', error);
