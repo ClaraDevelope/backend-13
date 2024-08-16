@@ -8,7 +8,7 @@ const mainRouter = require('express').Router()
 
 
 mainRouter.use('/auth', userRouter)
-mainRouter.use('/post', postRouter)
+mainRouter.use('/post', isAuth, postRouter)
 mainRouter.use('/cycle', isAuth ,menstrualCycleRouter)
 mainRouter.use('/calendary', isAuth , calendaryRouter)
 
