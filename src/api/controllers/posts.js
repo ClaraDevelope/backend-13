@@ -30,7 +30,6 @@ const getPostById = async (req, res, next) =>{
     return res.status(400).json('no se ha encontrado el post')
   }
 }
-
 const createPost = async(req, res, next) =>{
   try {
     const { id } = req.params;
