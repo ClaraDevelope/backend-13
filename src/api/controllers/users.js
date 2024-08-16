@@ -178,105 +178,6 @@ const register = async (req, res, next) => {
   }
 };
 
-// const register = async (req, res, next) => {
-//   try {
-//     const { email, name, password, birthDate, averageCycleLength, averagePeriodLength } = req.body;
-
-//     const duplicatedUser = await USER.findOne({ 'profile.email': email });
-
-//     if (duplicatedUser) {
-//       return res.status(400).json('Usuario ya existente');
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     const newUser = new USER({
-//       profile: {
-//         name,
-//         email,
-//         password: hashedPassword,
-//         birthDate: birthDate ? new Date(birthDate) : undefined,
-//         img: req.file ? req.file.path : undefined,
-//       },
-//       role: 'user',
-//       menstrualCycle: [],
-//       calendary: [],
-//       contacts: [],
-//       posts: [],
-//       comments: []
-//     });
-
-//     const user = await newUser.save();
-
-//     if (user.profile.email) {
-//       const mailOptions = {
-//         from: 'clara.manzano.corona@gmail.com',
-//         to: user.profile.email,
-//         subject: 'Te has registrado correctamente en la mejor red social menstrual',
-//         text: `Hola, ${user.profile.name} ¡Bienvenida a nuestra comunidad! ...`
-//       };
-
-//       transporter.sendMail(mailOptions, (error, info) => {
-//         if (error) {
-//           console.error('Error al enviar el correo electrónico de prueba:', error);
-//         } else {
-//           console.log('Correo electrónico de prueba enviado:', info.response);
-//         }
-//       });
-//     }
-//     console.log('Body:', req.body);
-
-//     if (averageCycleLength && averagePeriodLength) {
-//       try {
-//         const cycleLength = parseInt(averageCycleLength, 10);
-//         const periodLength = parseInt(averagePeriodLength, 10);
-//         const menstrualCycle = new MENSTRUALCYCLE({
-//           user: user._id,
-//           averageCycleLength: cycleLength,
-//           averagePeriodLength: periodLength,
-//           history:[]
-//         });
-
-//         await menstrualCycle.save();
-//         user.menstrualCycle = menstrualCycle._id;
-//         await user.save();
-
-//         console.log('Ciclo menstrual guardado y asociado correctamente:', menstrualCycle);
-//       } catch (error) {
-//         console.log(error);
-//         return res.status(400).json({ message: 'No se ha guardado correctamente el ciclo menstrual' });
-//       }
-//     }
-
-//     try {
-//       const calendary = new CALENDARY({
-//         user: user._id,
-//         menstrualCycle: user.menstrualCycle._id,
-//         events: [],
-//         personalTags: [],
-//         symptoms: [],
-//         mood: []
-//       });
-
-//       await calendary.save();
-//       user.calendary = calendary._id;
-//       await user.save();
-
-//       console.log('Calendario creado y asociado correctamente:', calendary);
-//     } catch (error) {
-//       console.log(error);
-//       return res.status(400).json({ message: 'No se ha guardado correctamente el calendario' });
-//     }
-
-//     console.log('Usuario creado correctamente:', user);
-//     return res.status(201).json(user);
-
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(400).json('Error al hacer post de los usuarios');
-//   }
-// };
-
 const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -355,8 +256,6 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-
-
 const deleteUser = async (req, res, next) =>{
   try {
     const {id} = req.params
@@ -373,7 +272,60 @@ const deleteUser = async (req, res, next) =>{
   }
 }
 
+
+const searchUsers = async (req, res, next) => {
+  try {
+    const { query } = req.query; 
+    console.log(query);
+
+    if (!query) {
+      return res.status(400).json({ message: 'El término de búsqueda es requerido' });
+    }
+    const users = await USER.find({
+      $or: [
+        { 'profile.name': { $regex: query, $options: 'i' } },
+        { 'profile.email': { $regex: query, $options: 'i' } }
+      ]
+    }).select('profile.name profile.email profile.img'); 
+    console.log(users);
+    
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error('Error al buscar usuarios:', error);
+    return res.status(500).json({ message: 'Error al buscar usuarios' });
+  }
+};
+
+const addContact = async (req, res, next) => {
+  const { userId } = req.params;
+  const currentUserId = req.user.id; 
+
+  try {
+
+    const existingContact = await USER.findOne({
+      _id: currentUserId,
+      'contacts.user': userId
+    });
+
+    if (existingContact) {
+      return res.status(400).json({ message: 'Este usuario ya está en tus contactos' });
+    }
+
+    await USER.findByIdAndUpdate(
+      currentUserId,
+      { $addToSet: { contacts: { user: userId } } },
+      { new: true }
+    );
+
+    return res.status(200).json({ message: 'Contacto añadido' });
+  } catch (error) {
+    console.error('Error al añadir contacto:', error);
+    return res.status(500).json({ message: 'Error al añadir contacto' });
+  }
+};
+
+
 module.exports = {
-    getUsers, getUserByID, register, login, updateUser, deleteUser
+    getUsers, getUserByID, register, login, updateUser, deleteUser, searchUsers, addContact
 };
 

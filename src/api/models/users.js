@@ -22,6 +22,10 @@ const UserSchema = new Schema({
     comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }]
 });
 
+
+const USER = mongoose.model('User' , UserSchema, 'User');
+module.exports = USER;
+
 // UserSchema.pre('save', function () {
 //   this.profile.password = bcrypt.hashSync(this.profile.password, 10)
 // })
@@ -32,6 +36,3 @@ const UserSchema = new Schema({
 //       next()
 //     }
 //   })
-
-const USER = mongoose.model('User' , UserSchema, 'User');
-module.exports = USER;
