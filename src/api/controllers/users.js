@@ -272,7 +272,6 @@ const deleteUser = async (req, res, next) =>{
   }
 }
 
-
 const searchUsers = async (req, res, next) => {
   try {
     const { query } = req.query; 
@@ -324,8 +323,24 @@ const addContact = async (req, res, next) => {
   }
 };
 
+const getContacts = async (req, res, next) => {
+  const currentUserId = req.user.id;
+
+  try {
+    const user = await USER.findById(currentUserId)
+      .populate('contacts.user', 'profile.name profile.email profile.img'); 
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.status(200).json({ contacts: user.contacts });
+  } catch (error) {
+    console.error('Error al obtener los contactos:', error);
+    res.status(500).json({ message: 'Error al obtener los contactos' });
+  }
+};
 
 module.exports = {
-    getUsers, getUserByID, register, login, updateUser, deleteUser, searchUsers, addContact
+    getUsers, getUserByID, register, login, updateUser, deleteUser, searchUsers, addContact, getContacts
 };
 

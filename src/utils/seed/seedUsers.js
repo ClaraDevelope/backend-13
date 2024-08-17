@@ -1,6 +1,8 @@
 const fs = require('fs');
 const Papa = require('papaparse');
 const USER = require('../../api/models/users');
+const mongoose = require('mongoose'); 
+
 
 const seedUsers = () => {
     return new Promise((resolve, reject) => {
@@ -26,8 +28,8 @@ const seedUsers = () => {
                         img: userData['img'],
                     },
                     role: 'user',
-                    menstrualCycle: [],
-                    calendary: [],
+                    menstrualCycle: new mongoose.Types.ObjectId(), 
+                    calendary: new mongoose.Types.ObjectId(),   
                     contacts: [],
                     posts: [],
                     comments: []

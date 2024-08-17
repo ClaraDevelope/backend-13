@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs')
 
 const ContactsSchema = new Schema({
     user: { type: Schema.Types.ObjectId, ref: 'User' }
-}); 
+}, { _id: false });
 
 const UserSchema = new Schema({
     profile: {
