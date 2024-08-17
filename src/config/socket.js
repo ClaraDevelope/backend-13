@@ -1,52 +1,87 @@
 const socketIo = require('socket.io');
-const jwt = require('jsonwebtoken');
-const { Server } = require('http');
-const { connectDB } = require('./db.js');
-const { keyVerifyer } = require('../utils/jwt.js');
-const USER = require('../api/models/users.js');
-
-// connectDB(); // Asegúrate de que la conexión a la base de datos está establecida
-
-
-// TODO   TAREA PARA MAÑANA: EN EL INDEX.JS: 
-// *HACER IMPORTACIÓN: const connectSocket = require('./socketConfig.js');
-// * const server = http.createServer(app);
-// * const io = connectSocket(server);
-
-
+const { keyVerifyer } = require('../utils/jwt');
+const Message = require('../api/models/message');
+const USER = require('../api/models/users');
 
 const connectSocket = (server) => {
-  const io = socketIo(server);
+  const io = socketIo(server, {
+    path: '/socket.io',
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST'],
+    },
+  });
+
+  console.log('Socket.io configurado en el puerto 8686');
 
   io.use(async (socket, next) => {
+    console.log('Middleware de autenticación iniciado');
     try {
+      console.log('Middleware de autenticación iniciado');
       const token = socket.handshake.query.token;
-      if (!token) {
-        return next(new Error('Token no proporcionado'));
+      console.log('Token recibido:', token);
+
+      if (token) {
+        console.log('Verificando token...');
+        const decoded = keyVerifyer(token);
+        console.log('Token verificado, decoded:', decoded);
+
+        const userId = decoded.id;
+        console.log('ID del usuario:', userId);
+
+        const user = await USER.findById(userId);
+        console.log('Consulta a la base de datos realizada');
+
+        if (user) {
+          socket.user = user;
+          console.log('Usuario autenticado:', user.profile.name);
+          next();
+        } else {
+          console.log('Usuario no encontrado');
+          next(new Error('Usuario no encontrado'));
+        }
+      } else {
+        console.log('No se recibió token');
+        next();
       }
-
-      const decoded = keyVerifyer(token); // Verifica el token JWT
-      const userId = decoded.id;
-
-      // Aquí puedes hacer una consulta a la base de datos para obtener los detalles del usuario
-      // En este ejemplo, asumiremos que ya tienes una función para buscar usuario por ID
-
-      // Reemplaza este código con tu lógica para buscar al usuario en la base de datos
-      const user = await USER.findById(userId); // Asegúrate de importar tu modelo de usuario adecuadamente
-      if (!user) {
-        return next(new Error('Usuario no encontrado'));
-      }
-
-      socket.user = user; // Almacena los detalles del usuario en el socket para usarlo más tarde
-      next();
     } catch (error) {
-      next(error); // Pasa cualquier error al siguiente middleware de Socket.IO
+      console.error('Error en autenticación:', error);
+      next(error);
     }
   });
 
   io.on('connection', (socket) => {
     console.log(`Nuevo cliente conectado: ${socket.id}`);
-    console.log(`Usuario autenticado: ${socket.user.username}`); // Ejemplo: Accede al nombre de usuario del socket
+    if (socket.user) {
+      console.log(`Usuario autenticado: ${socket.user.profile.name}`);
+    }
+
+    socket.on('send_message', async (data) => {
+      try {
+        console.log('Mensaje recibido:', data);
+        if (!socket.user) {
+          return socket.emit('message_sent', { success: false, error: 'Usuario no autenticado' });
+        }
+
+        const { receiverId, text } = data;
+        const message = new Message({
+          sender: socket.user._id,
+          receiver: receiverId,
+          text: text,
+        });
+        await message.save();
+
+        io.to(receiverId).emit('receive_message', {
+          sender: socket.user._id,
+          text: text,
+          timestamp: message.timestamp,
+        });
+
+        socket.emit('message_sent', { success: true });
+      } catch (error) {
+        console.error('Error al enviar el mensaje:', error);
+      }
+    });
 
     socket.on('disconnect', () => {
       console.log(`Cliente desconectado: ${socket.id}`);
@@ -57,3 +92,8 @@ const connectSocket = (server) => {
 };
 
 module.exports = connectSocket;
+
+
+
+
+
