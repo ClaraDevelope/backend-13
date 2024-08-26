@@ -5,6 +5,6 @@ const { isAuth } = require('../../middlewares/auth');
 const messageRouter = express.Router();
 
 messageRouter.post('/send', isAuth, sendMessage);
-messageRouter.get('/messages/:userId', isAuth , getMessages);
+messageRouter.get('/messages/:receiverId', isAuth , getMessages);
 
 module.exports = messageRouter;

@@ -46,19 +46,29 @@ const sendMessage = async (req, res) => {
 
 const getMessages = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { receiverId } = req.params;
+    const { currentUserId } = req.query;
 
-    // Encuentra los mensajes que tienen el usuario como emisor o receptor
+    // Verificación de parámetros
+    if (!currentUserId || !receiverId) {
+      return res.status(400).json({ success: false, message: "Faltan parámetros necesarios." });
+    }
+
+    console.log('Obteniendo mensajes entre:', { currentUserId, receiverId });
+
     const messages = await Message.find({
       $or: [
-        { sender: userId },
-        { receiver: userId }
+        { sender: currentUserId, receiver: receiverId },
+        { sender: receiverId, receiver: currentUserId }
       ]
     })
-    .populate('sender', 'profile.name') // Solo extrae el nombre del perfil del emisor
-    .populate('receiver', 'profile.name'); // Solo extrae el nombre del perfil del receptor
+    .populate('sender', 'profile.name')
+    .populate('receiver', 'profile.name'); 
 
-    // Formatea los mensajes para incluir el nombre del emisor y receptor
+    if (!messages.length) {
+      console.log('No se encontraron mensajes.');
+    }
+
     const formattedMessages = messages.map(msg => ({
       _id: msg._id,
       sender: {
@@ -79,6 +89,43 @@ const getMessages = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+;
+
+
+// const getMessages = async (req, res) => {
+//   try {
+//     const { userId } = req.params;
+
+//     const messages = await Message.find({
+//       $or: [
+//         { sender: userId },
+//         { receiver: userId }
+//       ]
+//     })
+//     .populate('sender', 'profile.name')
+//     .populate('receiver', 'profile.name'); 
+
+
+//     const formattedMessages = messages.map(msg => ({
+//       _id: msg._id,
+//       sender: {
+//         id: msg.sender._id,
+//         name: msg.sender.profile.name,
+//       },
+//       receiver: {
+//         id: msg.receiver._id,
+//         name: msg.receiver.profile.name,
+//       },
+//       text: msg.text,
+//       timestamp: msg.timestamp,
+//     }));
+
+//     res.status(200).json({ success: true, messages: formattedMessages });
+//   } catch (error) {
+//     console.error('Error al obtener los mensajes:', error);
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// };
 
 
 
