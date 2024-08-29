@@ -12,6 +12,6 @@ mainRouter.use('/auth', userRouter)
 mainRouter.use('/post', isAuth, postRouter)
 mainRouter.use('/cycle', isAuth ,menstrualCycleRouter)
 mainRouter.use('/calendary', isAuth , calendaryRouter)
-// mainRouter.use('/chat', isAuth , messageRouter)
+
 
 module.exports = { mainRouter }

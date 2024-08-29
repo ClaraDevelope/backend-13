@@ -7,8 +7,8 @@ const PostSchema = new Schema({
     img: {type: String, required: false , trim: true},
     content: { type: String, required: true },
     likes: { type: Number, default: 0 },
+    likedBy: [{ type: Schema.Types.ObjectId, ref: 'User' }], 
     comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],   
-    interactions: [{ type: Schema.Types.ObjectId, ref: 'Interaction' }]
 });
 
 const POST = mongoose.model('Post', PostSchema, 'Post');

@@ -1,6 +1,5 @@
 const POST = require("../models/posts");
 const COMMENT = require("../models/comments");
-const INTERACTION =  require('../models/interactions');
 const USER = require("../models/users");
 const { deleteImgCloudinary } = require("../../utils/deleteFile");
 
@@ -9,7 +8,6 @@ const getPosts = async (req, res, next) => {
     const populateFields = [
       { path: 'author', model: 'User' }, 
       { path: 'comments', model: 'Comment' }, 
-      { path: 'interactions' , model: 'Interaction'} 
     ];
 
     const posts = await POST.find().sort({_id : -1 }).populate(populateFields); 
@@ -98,7 +96,36 @@ const deletePost = async(req, res, next )=>{
   }
 }
 
+const toggleLike = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user._id;   
+
+    const post = await POST.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const userIndex = post.likedBy.indexOf(userId);
+
+    if (userIndex === -1) {
+      post.likes += 1;
+      post.likedBy.push(userId);
+    } else {
+      post.likes -= 1;
+      post.likedBy.splice(userIndex, 1);
+    }
+
+    const updatedPost = await post.save();
+
+    return res.status(200).json(updatedPost);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 module.exports = {
-  getPosts, getPostById ,createPost, updatePost, deletePost
+  getPosts, getPostById ,createPost, updatePost, deletePost, toggleLike
 };
