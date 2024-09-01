@@ -1,6 +1,7 @@
 const { isAuth } = require('../../middlewares/auth')
 const { calendaryRouter } = require('./calendary')
 const { menstrualCycleRouter } = require('./menstrualCycle')
+const { notificationRouter } = require('./notifications')
 // const messageRouter = require('./messaje')
 const { postRouter } = require('./posts')
 const { userRouter } = require('./users')
@@ -12,6 +13,6 @@ mainRouter.use('/auth', userRouter)
 mainRouter.use('/post', isAuth, postRouter)
 mainRouter.use('/cycle', isAuth ,menstrualCycleRouter)
 mainRouter.use('/calendary', isAuth , calendaryRouter)
-
+mainRouter.use('/notifications', isAuth, notificationRouter)
 
 module.exports = { mainRouter }
