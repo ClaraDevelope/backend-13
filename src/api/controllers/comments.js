@@ -7,21 +7,32 @@ const addComment = async (req, res) => {
     const { postId } = req.params;
     const { text } = req.body;
     const userId = req.user._id; 
-    
+
     const post = await POST.findById(postId);
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
+  
+    const user = await USER.findById(userId);
+
     const newComment = new COMMENT({
-      author: userId,
+      author: {
+        _id: user._id,
+        profile: {
+          name: user.profile.name,
+          img: user.profile.img
+        }
+      },
       text
     });
+
     const savedComment = await newComment.save();
+console.log(savedComment);
 
     post.comments.push(savedComment._id);
     await post.save();
-    console.log(savedComment.text);
+
     return res.status(201).json(savedComment);
   } catch (error) {
     console.error(error);
@@ -62,18 +73,41 @@ const deleteComment = async (req, res) => {
 const getCommentsByPost = async (req, res) => {
   try {
     const { postId } = req.params;
-    const post = await POST.findById(postId).populate('comments');
+
+
+    const post = await POST.findById(postId)
+      .populate({
+        path: 'comments',
+        populate: {
+          path: 'author',
+          model: 'User'
+        }
+      });
+
+    console.log('Post:', post);
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
+
+    console.log('Comments:', post.comments);
+
+    post.comments.forEach(comment => {
+      console.log('Comment ID:', comment._id);
+      console.log('Comment Text:', comment.text);
+      console.log('Author ID:', comment.author ? comment.author._id : 'No Author');
+      console.log('Author Name:', comment.author ? comment.author.profile.name : 'No Author Name');
+    });
+
     return res.status(200).json(post.comments);
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+
 
 module.exports = {
   addComment,

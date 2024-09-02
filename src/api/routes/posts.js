@@ -11,7 +11,7 @@ postRouter.delete('/:id/delete', deletePost)
 postRouter.post('/:id/like', toggleLike)
 postRouter.delete('/:postId/comment/:commentId', deleteComment)
 postRouter.post('/:postId/comment', addComment)
-postRouter.get('/:postId/comments', getCommentsByPost)
+postRouter.get('/:postId/comments/', getCommentsByPost)
 
 
 module.exports = { postRouter }
