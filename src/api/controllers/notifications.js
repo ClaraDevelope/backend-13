@@ -8,7 +8,7 @@ const getNotifications = async (req, res, next) => {
     const notifications = await Notification.find({
       receiver: currentUserId,
       status: 'pending'
-    }).populate('sender', 'profile.name profile.email');
+    }).populate('sender', 'profile.name profile.email profile.img' );
 
     return res.status(200).json(notifications);
   } catch (error) {
