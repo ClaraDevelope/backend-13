@@ -1,12 +1,10 @@
 const Message = require('../models/message');
+const Notification = require('../models/notifications'); 
 
 const sendMessage = async (req, res) => {
-  console.log('Controlador sendMessage llamado');
   try {
     const { receiverId, text } = req.body;
-    const sender = req.user._id
-
-    console.log('Datos recibidos:', { receiverId, text });
+    const sender = req.user._id;
 
     if (!receiverId || !text) {
       return res.status(400).json({ success: false, error: 'Faltan datos necesarios' });
@@ -17,6 +15,7 @@ const sendMessage = async (req, res) => {
       return res.status(401).json({ success: false, error: 'Usuario no autenticado' });
     }
 
+    // Crear el mensaje
     const message = new Message({
       sender: sender,
       receiver: receiverId,
@@ -24,6 +23,14 @@ const sendMessage = async (req, res) => {
     });
     await message.save();
 
+    // Crear una notificación para el receptor
+    const notification = new Notification({
+      sender: sender,
+      receiver: receiverId,
+      type: 'message',
+      status: 'pending'
+    });
+    await notification.save();
 
     if (req.io) {
       req.io.to(receiverId).emit('receive_message', {
@@ -43,18 +50,14 @@ const sendMessage = async (req, res) => {
   }
 };
 
-
 const getMessages = async (req, res) => {
   try {
     const { receiverId } = req.params;
     const { currentUserId } = req.query;
 
-    // Verificación de parámetros
     if (!currentUserId || !receiverId) {
       return res.status(400).json({ success: false, message: "Faltan parámetros necesarios." });
     }
-
-    console.log('Obteniendo mensajes entre:', { currentUserId, receiverId });
 
     const messages = await Message.find({
       $or: [
@@ -64,10 +67,6 @@ const getMessages = async (req, res) => {
     })
     .populate('sender', 'profile.name')
     .populate('receiver', 'profile.name'); 
-
-    if (!messages.length) {
-      console.log('No se encontraron mensajes.');
-    }
 
     const formattedMessages = messages.map(msg => ({
       _id: msg._id,
@@ -89,22 +88,81 @@ const getMessages = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
-;
+
+module.exports = { sendMessage, getMessages };
+
+
+
+
+// const Message = require('../models/message');
+
+// const sendMessage = async (req, res) => {
+//   console.log('Controlador sendMessage llamado');
+//   try {
+//     const { receiverId, text } = req.body;
+//     const sender = req.user._id
+
+//     console.log('Datos recibidos:', { receiverId, text });
+
+//     if (!receiverId || !text) {
+//       return res.status(400).json({ success: false, error: 'Faltan datos necesarios' });
+//     }
+
+//     const user = req.user;
+//     if (!user) {
+//       return res.status(401).json({ success: false, error: 'Usuario no autenticado' });
+//     }
+
+//     const message = new Message({
+//       sender: sender,
+//       receiver: receiverId,
+//       text: text,
+//     });
+//     await message.save();
+
+
+//     if (req.io) {
+//       req.io.to(receiverId).emit('receive_message', {
+//         id: message._id,
+//         sender: user._id,
+//         text: text,
+//         timestamp: message.timestamp,
+//       });
+//     } else {
+//       console.error('Socket.io no está definido en req');
+//     }
+
+//     res.status(200).json({ success: true });
+//   } catch (error) {
+//     console.error('Error al enviar el mensaje:', error);
+//     res.status(500).json({ success: false, error: error.message });
+//   }
+// };
 
 
 // const getMessages = async (req, res) => {
 //   try {
-//     const { userId } = req.params;
+//     const { receiverId } = req.params;
+//     const { currentUserId } = req.query;
+
+//     if (!currentUserId || !receiverId) {
+//       return res.status(400).json({ success: false, message: "Faltan parámetros necesarios." });
+//     }
+
+//     console.log('Obteniendo mensajes entre:', { currentUserId, receiverId });
 
 //     const messages = await Message.find({
 //       $or: [
-//         { sender: userId },
-//         { receiver: userId }
+//         { sender: currentUserId, receiver: receiverId },
+//         { sender: receiverId, receiver: currentUserId }
 //       ]
 //     })
 //     .populate('sender', 'profile.name')
 //     .populate('receiver', 'profile.name'); 
 
+//     if (!messages.length) {
+//       console.log('No se encontraron mensajes.');
+//     }
 
 //     const formattedMessages = messages.map(msg => ({
 //       _id: msg._id,
@@ -126,7 +184,5 @@ const getMessages = async (req, res) => {
 //     res.status(500).json({ success: false, error: error.message });
 //   }
 // };
-
-
-
-module.exports = { sendMessage, getMessages };
+// ;
+// module.exports = { sendMessage, getMessages };

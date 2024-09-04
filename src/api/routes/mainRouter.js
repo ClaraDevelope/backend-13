@@ -2,7 +2,6 @@ const { isAuth } = require('../../middlewares/auth')
 const { calendaryRouter } = require('./calendary')
 const { menstrualCycleRouter } = require('./menstrualCycle')
 const { notificationRouter } = require('./notifications')
-// const messageRouter = require('./messaje')
 const { postRouter } = require('./posts')
 const { userRouter } = require('./users')
 

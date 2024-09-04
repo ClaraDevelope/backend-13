@@ -296,34 +296,6 @@ const searchUsers = async (req, res, next) => {
   }
 };
 
-// const addContact = async (req, res, next) => {
-//   const { userId } = req.params;
-//   const currentUserId = req.user.id; 
-
-//   try {
-
-//     const existingContact = await USER.findOne({
-//       _id: currentUserId,
-//       'contacts.user': userId
-//     });
-
-//     if (existingContact) {
-//       return res.status(400).json({ message: 'Este usuario ya está en tus contactos' });
-//     }
-
-//     await USER.findByIdAndUpdate(
-//       currentUserId,
-//       { $addToSet: { contacts: { user: userId } } },
-//       { new: true }
-//     );
-
-//     return res.status(200).json({ message: 'Contacto añadido' });
-//   } catch (error) {
-//     console.error('Error al añadir contacto:', error);
-//     return res.status(500).json({ message: 'Error al añadir contacto' });
-//   }
-// };
-
 const addContact = async (req, res, next) => {
   const { userId } = req.params; 
   const currentUserId = req.user.id; 
