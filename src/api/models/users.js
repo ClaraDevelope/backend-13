@@ -25,14 +25,3 @@ const UserSchema = new Schema({
 
 const USER = mongoose.model('User' , UserSchema, 'User');
 module.exports = USER;
-
-// UserSchema.pre('save', function () {
-//   this.profile.password = bcrypt.hashSync(this.profile.password, 10)
-// })
-
-// UserSchema.pre('save', async function (next) {
-//     if (this.isModified('password') || this.isNew) {
-//       this.profile.password = bcrypt.hashSync(this.profile.password, 10)
-//       next()
-//     }
-//   })

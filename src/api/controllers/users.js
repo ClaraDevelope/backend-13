@@ -244,7 +244,6 @@ const updateUser = async (req, res, next) => {
         } else if (key === 'password') {
           user.profile.password = bcrypt.hashSync(updates.password, 10);
         }
-        // No actualices el campo de la imagen aquí si ya has establecido una nueva imagen
       }
     }
 

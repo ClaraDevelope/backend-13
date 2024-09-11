@@ -125,7 +125,7 @@ const deleteEntry = async (req, res) => {
         break;
 
       case 'personalTag':
-        // Buscar y eliminar la etiqueta personal por ID
+
         const personalTagIndex = calendary.personalTags.findIndex(tag => tag._id == entryId);
         if (personalTagIndex === -1) {
           return res.status(404).json({ message: 'Etiqueta personal no encontrada' });
@@ -135,7 +135,7 @@ const deleteEntry = async (req, res) => {
         break;
 
       case 'symptom':
-        // Buscar y eliminar el síntoma por ID
+
         const symptomIndex = calendary.symptoms.findIndex(symptom => symptom._id == entryId);
         if (symptomIndex === -1) {
           return res.status(404).json({ message: 'Síntoma no encontrado' });
@@ -145,7 +145,7 @@ const deleteEntry = async (req, res) => {
         break;
 
       case 'mood':
-        // Buscar y eliminar el mood por ID
+
         const moodIndex = calendary.mood.findIndex(mood => mood._id == entryId);
         if (moodIndex === -1) {
           return res.status(404).json({ message: 'Mood no encontrado' });
@@ -158,7 +158,7 @@ const deleteEntry = async (req, res) => {
         return res.status(400).json({ message: 'Tipo de entrada no válido' });
     }
 
-    // Guardar los cambios en el calendario
+
     await calendary.save();
     res.status(200).json({ message: 'Entrada eliminada', removedEntry });
   } catch (error) {
